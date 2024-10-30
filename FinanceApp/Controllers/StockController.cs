@@ -1,4 +1,6 @@
 ﻿using FinanceApp.Data;
+using FinanceApp.DTOs.Stock;
+using FinanceApp.Mappers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinanceApp.Controllers
@@ -16,7 +18,7 @@ namespace FinanceApp.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            var stocks = _context.Stocks.ToList();
+            var stocks = _context.Stocks.ToList().Select(s => s.ToStockDto());
 
             return Ok(stocks);
         }
@@ -32,7 +34,17 @@ namespace FinanceApp.Controllers
                 return NotFound();
             }
 
-            return Ok(stock);
+            return Ok(stock.ToStockDto());
+        }
+
+        [HttpPost]
+        public IActionResult Create([FromBody] CreateStockRequestDto stockDto)
+        {
+            var stockModel = stockDto.ToStockFromCreateDTO();
+            _context.Stocks.Add(stockModel);
+            _context.SaveChanges();
+
+            return CreatedAtAction(nameof(GetById), new { id = stockModel.ID }, stockModel.ToStockDto());
         }
     }
 }
